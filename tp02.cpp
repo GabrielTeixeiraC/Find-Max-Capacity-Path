@@ -11,24 +11,24 @@ struct Edge {
     int maxWeight;
 
     // Operator overloading to compare two edges based on their weights
-    bool operator<(const Edge& another) const
-    {
+    bool operator<(const Edge& another) const {
         return maxWeight < another.maxWeight;
     }
 };
 
-int getCapacitiesFromNode(int originNode, int destinationNode, vector<vector<Edge>> & adjacencyList, vector<vector<int>> & capacities) {
+int getCapacitiesFromNode(int originNode, int destinationNode, vector<vector<Edge>> & adjacencyList, int numberOfCities) {
     // Initialize priority queue with all edges from originNode and update the capacities matrix
-    vector<bool> visited(capacities.size(), false);
+    vector<int> capacities(numberOfCities + 1);
+    vector<bool> visited(numberOfCities, false);
     priority_queue<Edge> pq;
     int maxCapacity = 0;
 
     visited[originNode] = true;
-    capacities[originNode][originNode] = 100000;
+    capacities[originNode] = 100000;
 
     for (int i = 0; i < adjacencyList[originNode].size(); i++) {
         Edge edge = adjacencyList[originNode][i];
-        capacities[originNode][edge.destinationNode] = edge.maxWeight;
+        capacities[edge.destinationNode] = edge.maxWeight;
         pq.push(edge);
     }
 
@@ -39,18 +39,18 @@ int getCapacitiesFromNode(int originNode, int destinationNode, vector<vector<Edg
         pq.pop();
         
         // If the node has already been visited, ignore it
-        if (edge.destinationNode == originNode || visited[edge.destinationNode]) {
+        if (visited[edge.destinationNode]) {
             continue;
         }
 
         // Update the capacities matrix at the destination node's index
-        if (edge.maxWeight > capacities[originNode][edge.destinationNode]) {
-            capacities[originNode][edge.destinationNode] = min(capacities[originNode][edge.originNode], edge.maxWeight);
+        if (edge.maxWeight > capacities[edge.destinationNode]) {
+            capacities[edge.destinationNode] = min(capacities[edge.originNode], edge.maxWeight);
         }        
         
         // Arrived at destination node
         if (edge.destinationNode == destinationNode) {
-            maxCapacity = capacities[originNode][edge.destinationNode];
+            maxCapacity = capacities[edge.destinationNode];
             return maxCapacity;
         }
 
@@ -62,6 +62,7 @@ int getCapacitiesFromNode(int originNode, int destinationNode, vector<vector<Edg
             pq.push(nextEdge);
         }
     }  
+
     return maxCapacity;
 }
 
@@ -75,23 +76,22 @@ int main() {
     vector<vector<Edge>> adjacencyList(numberOfCities + 1);
 
     // Get the roads and their capacities, creating the adjacency list 
-    for (int i = 0; i < numberOfRoads; i++)
-    {
+    for (int i = 0; i < numberOfRoads; i++) {
         Edge aux;
         cin >> aux.originNode >> aux.destinationNode >> aux.maxWeight;
+
         adjacencyList[aux.originNode].push_back(aux);
     }
     
     // Get the queries and print their results
     vector<bool> nodesAlreadyCalculated(numberOfCities + 1, false);
-    vector<vector<int>> capacities(numberOfCities + 1, vector<int>(numberOfCities + 1, 0));
     for (int i = 0; i < numberOfQueries; i++) {
         int originNode;
         int destinationNode;
         
         cin >> originNode >> destinationNode;
         
-        int maxCapacity = getCapacitiesFromNode(originNode, destinationNode, adjacencyList, capacities);
+        int maxCapacity = getCapacitiesFromNode(originNode, destinationNode, adjacencyList, numberOfCities);
 
         cout << maxCapacity << endl;
     }
